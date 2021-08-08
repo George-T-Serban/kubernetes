@@ -35,8 +35,16 @@ Added new context arn:aws:eks:us-east-2:648826012845:cluster/education-eks-yPTT1
 # in your home directory or merged with an existing kubeconfig at that location.
 ```
 
+<<<<<<< HEAD
 `export KUBECONFIG=/path/to/admin.conf`
 
+=======
+
+
+```bash
+export KUBECONFIG=/path/to/kube/config
+```
+>>>>>>> f9be4bda3471ffc3110519f402bfeb6e364e1b4d
 
 
 From Stackoverflow:
@@ -134,8 +142,13 @@ spec:
 ```
 
 
+<<<<<<< HEAD
 `kubectl apply -f service-loadbalancer.yaml`
 
 `kubectl describe service hello-kubernetes`
 
 Open browser and go to LoadBalancer ingress url.
+=======
+# open browser and go to url: a76d7dab9748c43858e765833c437ee9-375677111.us-east-1.elb.amazonaws.com 
+```
+>>>>>>> f9be4bda3471ffc3110519f402bfeb6e364e1b4d
