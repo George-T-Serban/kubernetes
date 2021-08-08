@@ -35,10 +35,10 @@ Added new context arn:aws:eks:us-east-2:648826012845:cluster/education-eks-yPTT1
 # in your home directory or merged with an existing kubeconfig at that location.
 ```
 
-Other options:
+
 
 ```bash
-export KUBECONFIG=/path/to/admin.conf
+export KUBECONFIG=/path/to/kube/config
 ```
 
 ```bash
