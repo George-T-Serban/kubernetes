@@ -108,7 +108,7 @@ spec:
 
 `kubectl port-forward hello-kubernetes-6db5bf56c6-zbx6p 8080:8080`
 
-open browser and go to http://localhost:8080/
+Open browser and go to http://localhost:8080/.
 
 
 
@@ -138,4 +138,4 @@ spec:
 
 `kubectl describe service hello-kubernetes`
 
-open browser and go to LoadBalancer ingress url. 
+Open browser and go to LoadBalancer ingress url.
