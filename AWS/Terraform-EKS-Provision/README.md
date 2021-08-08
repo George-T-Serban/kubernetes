@@ -19,15 +19,15 @@ After a successful deployment terraform creates a files named `kubeconfig_my clu
 
 1. Check the current identity to verify that you're using the correct credentials that have permissions for the Amazon EKS cluster:
 
-```bash
-aws sts get-caller-identity
-```
+
+`aws sts get-caller-identity`
+
 
 2. Create or update the kubeconfig file for your cluster:
 
-```bash
-aws eks --region region update-kubeconfig --name cluster-name
 
+`aws eks --region region update-kubeconfig --name cluster-name`
+```
 output:
 Added new context arn:aws:eks:us-east-2:648826012845:cluster/education-eks-yPTT1J1m to /home/george/.kube/config
 
@@ -35,28 +35,26 @@ Added new context arn:aws:eks:us-east-2:648826012845:cluster/education-eks-yPTT1
 # in your home directory or merged with an existing kubeconfig at that location.
 ```
 
-Other options:
+`export KUBECONFIG=/path/to/admin.conf`
 
-```bash
-export KUBECONFIG=/path/to/admin.conf
-```
 
-```bash
-# From Stackoverflow
-# I just alias the kubectl command into separate ones for my dev and production environments via .bashrc
 
-alias k8='kubectl'
-alias k8prd='kubectl --kubeconfig ~/.kube/config_prd.conf'
+From Stackoverflow:
+I just alias the kubectl command into separate ones for my dev and production environments via .bashrc
 
-# I prefer this method as it requires me to define the environment for each command
-# whereas using an environment variable could potentially lead you to running a command within the wrong environment
-```
+`alias k8='kubectl'`
+
+`alias k8prd='kubectl --kubeconfig ~/.kube/config_prd.conf'`
+
+I prefer this method as it requires me to define the environment for each command
+whereas using an environment variable could potentially lead you to running a command within the wrong environment
+
 
 3. Test your configuration:
 
-```bash
-kubectl get pods --all-namespaces --kubeconfig ~/.kube/config
 
+`kubectl get pods --all-namespaces --kubeconfig ~/.kube/config`
+```
 # output:
 [george@fedora-34 learn-terraform-provision-eks-cluster]$ kubectl get pods --all-namespaces --kubeconfig ~/.kube/config 
 NAMESPACE     NAME                       READY   STATUS    RESTARTS   AGE
@@ -70,9 +68,9 @@ kube-system   kube-proxy-m9zk6           1/1     Running   0          5m10s
 kube-system   kube-proxy-zzfh4           1/1     Running   0          5m19s
 ```
 
-```bash
-kubectl get svc
 
+`kubectl get svc`
+```
 # output:
 [george@fedora-34 learn-terraform-provision-eks-cluster]$ kubectl get svc
 NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
@@ -106,15 +104,15 @@ spec:
             - containerPort: 8080
 ```
 
-```bash
+`kubectl apply -f deployment.yaml`
 
-kubectl apply -f deployment.yaml
-kubectl port-forward hello-kubernetes-6db5bf56c6-zbx6p 8080:8080
+`kubectl port-forward hello-kubernetes-6db5bf56c6-zbx6p 8080:8080`
 
-# open browser and go to http://localhost:8080/
-```
+open browser and go to http://localhost:8080/
 
-If you want to route live traffic to the Pod, you should have a more permanent solution.
+
+
+If you want to route live traffic to the pod, you should have a more permanent solution.
 
 Use `type: LoadBalancer` to expose your Pods.
 
@@ -135,9 +133,9 @@ spec:
     name: hello-kubernetes
 ```
 
-```bash
-kubectl apply -f service-loadbalancer.yaml
-kubectl describe service hello-kubernetes
 
-# open browser and go to url: a76d7dab9748c43858e765833c437ee9-375677111.us-east-1.elb.amazonaws.com 
-```
+`kubectl apply -f service-loadbalancer.yaml`
+
+`kubectl describe service hello-kubernetes`
+
+open browser and go to LoadBalancer ingress url. 
