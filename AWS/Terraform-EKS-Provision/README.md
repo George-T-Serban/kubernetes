@@ -35,9 +35,6 @@ Added new context arn:aws:eks:us-east-2:648826012845:cluster/education-eks-yPTT1
 # in your home directory or merged with an existing kubeconfig at that location.
 ```
 
-`export KUBECONFIG=/path/to/kube/config`
-
-
 
 From Stackoverflow:
 I just alias the kubectl command into separate ones for my dev and production environments via .bashrc
