@@ -49,30 +49,9 @@ whereas using an environment variable could potentially lead you to running a co
 
 3. Test your configuration:
 
-
 `kubectl get pods --all-namespaces --kubeconfig ~/.kube/config`
-```
-# output:
-[george@fedora-34 learn-terraform-provision-eks-cluster]$ kubectl get pods --all-namespaces --kubeconfig ~/.kube/config 
-NAMESPACE     NAME                       READY   STATUS    RESTARTS   AGE
-kube-system   aws-node-64pl4             1/1     Running   0          5m10s
-kube-system   aws-node-8kkfz             1/1     Running   0          5m28s
-kube-system   aws-node-lkvdj             1/1     Running   0          5m19s
-kube-system   coredns-5c778788f4-d44lv   1/1     Running   0          9m39s
-kube-system   coredns-5c778788f4-kprlx   1/1     Running   0          9m39s
-kube-system   kube-proxy-dt67d           1/1     Running   0          5m28s
-kube-system   kube-proxy-m9zk6           1/1     Running   0          5m10s
-kube-system   kube-proxy-zzfh4           1/1     Running   0          5m19s
-```
-
 
 `kubectl get svc`
-```
-# output:
-[george@fedora-34 learn-terraform-provision-eks-cluster]$ kubectl get svc
-NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
-kubernetes   ClusterIP   172.20.0.1   <none>        443/TCP   10m
-```
 
 4. Deploy apps.
 
