@@ -4,7 +4,7 @@
 
 Each server has 4GB RAM and 2 cpus.
 
-### Steps involved in setting up the Kubernetes cluster using kubeadm.
+### Steps involved in setting up the Kubernetes cluster using kubeadm:
 * Install Docker on all nodes.
 * Install Kubeadm, Kubelet, and kubectl on all the nodes.
 * Initiate Kubeadm control plane configuration on the master node.
