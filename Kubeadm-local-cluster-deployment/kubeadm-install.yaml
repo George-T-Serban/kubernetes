@@ -35,8 +35,7 @@
       when: ansible_os_family == "RedHat"
       yum:
         name: kubeadm
-        state: present
-        
+        state: present        
     
     - name: Configure sysctl (modify kernel parameters at runtime)
       shell: |
@@ -47,8 +46,7 @@
         net.bridge.bridge-nf-call-iptables = 1
         net.ipv4.ip_forward = 1
         EOF
-        sudo sysctl --system
-  
+        sudo sysctl --system  
 
     - name: Add Docker repository 
       yum_repository:
@@ -77,6 +75,7 @@
       loop:
         - /etc/docker
         - /etc/systemd/system/docker.service.d
+
     - name: Create daemon json config file
       shell: |
         tee /etc/docker/daemon.json <<EOF
@@ -92,12 +91,12 @@
           ]
         }
         EOF
+    
     - name: Start and enable docker services
       systemd:
         name: docker 
         enabled: yes
-        state: restarted
-                
+        state: restarted                
 
 - name: Open firewalld ports on master
   hosts: master
@@ -130,9 +129,7 @@
     - name: Reload firewalld
       systemd:
         name: firewalld
-        state: reloaded
-
-          
+        state: reloaded          
 
 - name: Open firewalld ports on worker nodes
   hosts: workernodes
