@@ -1,0 +1,264 @@
+---
+- name: Set up Kubernetes cluster using kubeadm
+  hosts: all
+  remote_user: kubernetes
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  tasks:
+    - name: Disable swap on all nodes
+      shell: |
+        swapoff -a
+    - name: Disable swap in fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+        replace: '# \1'
+
+    - name: Disable SELinux
+      selinux:
+        state: disabled 
+
+    - name: Add Kubernetes yum repository
+      when: ansible_os_family == "RedHat"
+      yum_repository:
+        name: Kubernetes
+        description: Kubernetes Repository
+        baseurl: http://yum.kubernetes.io/repos/kubernetes-el7-x86_64
+        enabled: yes
+        gpgcheck: yes
+        gpgkey: 
+          - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+          - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+          
+    - name: Install kubeadm (RHEL/CentOS)
+      when: ansible_os_family == "RedHat"
+      yum:
+        name: kubeadm
+        state: present
+        
+    
+    - name: Configure sysctl (modify kernel parameters at runtime)
+      shell: |
+        modprobe overlay
+        modprobe br_netfilter
+        tee /etc/sysctl.d/kubernetes.conf<<EOF
+        net.bridge.bridge-nf-call-ip6tables = 1
+        net.bridge.bridge-nf-call-iptables = 1
+        net.ipv4.ip_forward = 1
+        EOF
+        sudo sysctl --system
+  
+
+    - name: Add Docker repository 
+      yum_repository:
+        name: Docker 
+        description: Docker Repository
+        baseurl: https://download.docker.com/linux/centos/7/x86_64/stable/
+        enabled: yes
+        gpgcheck: yes
+        gpgkey:
+          - https://download.docker.com/linux/centos/gpg
+
+    - name: Install Docker and required packages 
+      yum:
+        name: 
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2 
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+    - name: Create required directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - /etc/docker
+        - /etc/systemd/system/docker.service.d
+    - name: Create daemon json config file
+      shell: |
+        tee /etc/docker/daemon.json <<EOF
+        {
+          "exec-opts": ["native.cgroupdriver=systemd"],
+          "log-driver": "json-file",
+          "log-opts": {
+            "max-size": "100m"
+          },
+          "storage-driver": "overlay2",
+          "storage-opts": [
+            "overlay2.override_kernel_check=true"
+          ]
+        }
+        EOF
+    - name: Start and enable docker services
+      systemd:
+        name: docker 
+        enabled: yes
+        state: restarted
+                
+
+- name: Open firewalld ports on master
+  hosts: master
+  remote_user: kubernetes
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  tasks:
+    - name: Start firewalld
+      systemd:
+        name: firewalld
+        state: started
+
+    - name: Enable ports on master 
+      firewalld:
+        permanent: yes
+        immediate: yes 
+        port: "{{ item.port }}/{{ item.proto }}"
+        state: "{{ item.state }}"
+      loop:
+        - { port: "6443", proto: "tcp", state: "enabled"}
+        - { port: "2379-2380", proto: "tcp", state: "enabled"}
+        - { port: "10250-10252", proto: "tcp", state: "enabled"}
+        - { port: "5473", proto: "tcp", state: "enabled"}
+        - { port: "179", proto: "tcp", state: "enabled"}
+        - { port: "4789", proto: "udp", state: "enabled"}
+        - { port: "8285", proto: "udp", state: "enabled"}
+        - { port: "8472", proto: "udp", state: "enabled"}
+
+    - name: Reload firewalld
+      systemd:
+        name: firewalld
+        state: reloaded
+
+          
+
+- name: Open firewalld ports on worker nodes
+  hosts: workernodes
+  remote_user: kubernetes
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  tasks:
+    - name: Start firewalld
+      systemd:
+        name: firewalld
+        state: started
+
+    - name: Enable ports on worker nodes
+      firewalld:
+        permanent: yes
+        immediate: yes 
+        port: "{{ item.port }}/{{ item.proto }}"
+        state: "{{ item.state }}"
+      loop:
+        - { port: "10250", proto: "tcp", state: "enabled"}
+        - { port: "30000-32767", proto: "tcp", state: "enabled"}
+        - { port: "5473", proto: "tcp", state: "enabled"}
+        - { port: "179", proto: "tcp", state: "enabled"}
+        - { port: "4789", proto: "udp", state: "enabled"}
+        - { port: "8285", proto: "udp", state: "enabled"}
+        - { port: "8472", proto: "udp", state: "enabled"}
+        
+    - name: Reload firewalld
+      systemd:
+        name: firewalld
+        state: reloaded 
+
+- name: Initialize kubeadm on master
+  remote_user: kubernetes
+  hosts: master
+  gather_facts: yes
+  tasks:
+    - name: Make sure that the br_netfilter module is loaded
+      shell: |
+        lsmod | grep br_netfilter
+      register: lsmod_output
+    - debug:
+        var: lsmod_output.stdout_lines
+   
+    - name: Enable kubelet service
+      systemd:
+        name: kubelet.service
+        enabled: yes
+
+    - name: Setup control plane 
+      shell: |
+        kubeadm init --apiserver-advertise-address="{{ ansible_enp0s8.ipv4.address }}" \
+                     --apiserver-cert-extra-sans="{{ ansible_enp0s8.ipv4.address }}" \
+                     --pod-network-cidr=192.168.0.0/24 \
+                     --node-name "{{ ansible_hostname }}" \
+                     --ignore-preflight-errors Swap
+      register: kubeadm_output
+    - debug:
+        var: kubeadm_output.stdout_lines
+
+    - name: Create .kube directory on master
+      file:
+        path: /home/kubernetes/.kube
+        state: directory
+        mode: '0755'
+
+    - name: Copy admin.conf to user's kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/kubernetes/.kube/config
+        remote_src: yes
+        owner: kubernetes
+
+    - name: Change kubeconfig file permissions
+      file:
+        path: /home/kubernetes/.kube/config 
+        owner: kubernetes
+        group: wheel
+
+    - name: Install Calico network plugin
+      become: no
+      shell: |
+        kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+
+    - name: Generate join command
+      command: kubeadm token create --print-join-command
+      register: join_command
+
+    - name: Copy join_command output to file
+      copy:
+        content: "{{ join_command.stdout_lines[0] }}"
+        dest: /home/kubernetes/join-command 
+
+    - name: Copy join_command file to localhost
+      fetch:
+        src: /home/kubernetes/join-command
+        dest: /home/george/Projects/kubernetes/kubeadm-local-deployment/ansible/
+        flat: yes
+
+- name: Join the nodes to the Kubernetes cluster
+  remote_user: kubernetes
+  hosts: workernodes
+  gather_facts: yes
+  tasks:
+    - name: Restart kubelet service
+      become: yes
+      become_method: sudo
+      systemd:
+        name: kubelet.service
+        state: restarted
+
+    - name: Copy the join command to nodes  
+      copy: 
+        src: ./join-command 
+        dest: /tmp/join-command.sh 
+        mode: 0777
+
+    - name: Join the node to cluster
+      become: yes
+      become_method: sudo
+      command: sh /tmp/join-command.sh
+
+
+
+      
+
+
+

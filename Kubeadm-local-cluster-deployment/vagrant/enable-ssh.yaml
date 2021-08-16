@@ -1,0 +1,40 @@
+---
+- name: Set up ssh on vagrant servers
+  hosts: all
+  tasks:
+    - name: Make sure we have a 'wheel' group
+      group:
+        name: wheel
+        state: present
+
+    - name: Copy ssh-key for user 'vagrant' to all hosts 
+      authorized_key: 
+        user: vagrant
+        state: present 
+        key: "{{ lookup('file','/home/george/.ssh/id_rsa.pub') }}" 
+     
+
+    - name: Create user 'kubernetes' 
+      user: 
+        name: kubernetes
+        group: wheel 
+        state: present 
+        
+    - name: Copy ssh-key for user kubernetes 
+      authorized_key: 
+        user: kubernetes 
+        state: present 
+        key: "{{ lookup('file','/home/george/.ssh/id_rsa.pub') }}" 
+     
+    - name: Allow 'wheel' group to have passwordless sudo 
+      lineinfile: 
+        dest: /etc/sudoers 
+        state: present 
+        regexp: '^%wheel' 
+        line: '%wheel ALL=(ALL) NOPASSWD: ALL' 
+        validate: 'visudo -cf %s'
+
+    - name: Update servers
+      yum:
+        name: "*"
+        state: latest
