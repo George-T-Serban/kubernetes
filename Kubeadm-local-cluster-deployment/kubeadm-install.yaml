@@ -210,11 +210,11 @@
         owner: kubernetes
         group: wheel
 
-    - name: Install Calico network plugin
-      become: no
-      shell: |
-        kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
-
+#    - name: Install Calico network plugin
+#      become: no
+#      shell: |
+#        kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+#
     - name: Generate join command
       command: kubeadm token create --print-join-command
       register: join_command
