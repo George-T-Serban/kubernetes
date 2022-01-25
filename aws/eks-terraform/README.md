@@ -17,13 +17,12 @@ Before destroying, run `terraform plan -refresh-only`, otherwise terraform might
 
 After a successful deployment terraform creates a files named `kubeconfig_my cluster name` in the project's folder 
 
-- Check the current identity to verify that you're using the correct credentials that have permissions for the Amazon EKS cluster:
+* Check the current identity to verify that you're using the correct credentials that have permissions for the Amazon EKS cluster:
 
 
 `aws sts get-caller-identity`
 ```
-
-- Create or update the kubeconfig file for your cluster:
+* Create or update the kubeconfig file for your cluster:
 
 
 `aws eks --region region update-kubeconfig --name cluster-name`
