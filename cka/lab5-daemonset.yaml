@@ -1,0 +1,19 @@
+# Run a deployment that starts one nginx web server pod on all cluster nodes
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-everynode  
+  labels:
+    k8s-app: nginx-all-nodes
+spec:
+  selector:
+    matchLabels:
+      name: nginx-everynode
+  template:
+    metadata:
+      labels:
+        name: nginx-everynode
+    spec:
+      containers:
+      - name: nginx-everynode
+        image: nginx
