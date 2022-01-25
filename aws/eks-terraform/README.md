@@ -21,11 +21,9 @@ After a successful deployment terraform creates a files named `kubeconfig_my clu
 
 
 `aws sts get-caller-identity`
-```
+
 * Create or update the kubeconfig file for your cluster:
 
-
 `aws eks --region region update-kubeconfig --name cluster-name`
-```
 
 
