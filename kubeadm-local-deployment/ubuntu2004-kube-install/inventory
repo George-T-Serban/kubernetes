@@ -1,0 +1,21 @@
+# inventory for ubuntu 20.04 servers
+
+[all]
+All IPs here
+
+[workers]
+All worker nodes IPs here
+
+[k8control]
+IP
+
+[k8worker01]
+IP
+
+[k8worker02]
+IP
+
+[k8worker03]
+IP
+
+
