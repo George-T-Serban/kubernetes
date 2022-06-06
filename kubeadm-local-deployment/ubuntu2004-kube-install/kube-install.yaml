@@ -180,9 +180,3 @@
       become_method: sudo
       command: sh /tmp/join-command.sh
 
-
-
-      
-
-
-
